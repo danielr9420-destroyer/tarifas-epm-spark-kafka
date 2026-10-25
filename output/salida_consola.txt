@@ -1,0 +1,253 @@
+
+==============================================================================
+ 1. CARGA DEL CONJUNTO DE DATOS
+==============================================================================
+Registros: 24,179 | Columnas: 14
+root
+ |-- Municipio: string (nullable = true)
+ |-- Sector: string (nullable = true)
+ |-- Estrato: string (nullable = true)
+ |-- Servicio: string (nullable = true)
+ |-- Cargo Fijo: string (nullable = true)
+ |-- Cargo por Consumo Menor: string (nullable = true)
+ |-- Cargo por Consumo Mayor: string (nullable = true)
+ |-- Cargo por Consumo: string (nullable = true)
+ |-- Suspensión: string (nullable = true)
+ |-- Reinstalación: string (nullable = true)
+ |-- Reconexión: string (nullable = true)
+ |-- Corte: string (nullable = true)
+ |-- Año: string (nullable = true)
+ |-- Mes: string (nullable = true)
+
++---------+----------------+----------------+--------------+----------+-----------------------+-----------------------+-----------------+----------+-------------+----------+----------+----+-------+
+|Municipio|Sector          |Estrato         |Servicio      |Cargo Fijo|Cargo por Consumo Menor|Cargo por Consumo Mayor|Cargo por Consumo|Suspensión|Reinstalación|Reconexión|Corte     |Año |Mes    |
++---------+----------------+----------------+--------------+----------+-----------------------+-----------------------+-----------------+----------+-------------+----------+----------+----+-------+
+|Barbosa  |Comercial       |Comercial       |Acueducto     |$10.531,25|$0,00                  |$0,00                  |$4.007,15        |$12.719,36|$10.902,31   |$19.987,57|$21.804,62|2021|Octubre|
+|Barbosa  |Comercial       |Comercial       |Alcantarillado|$6.039,39 |$0,00                  |$0,00                  |$2.336,07        |$12.719,36|$10.902,31   |$19.987,57|$21.804,62|2021|Octubre|
+|Barbosa  |Industrial      |Industrial      |Acueducto     |$10.531,25|$0,00                  |$0,00                  |$4.007,15        |$12.719,36|$10.902,31   |$19.987,57|$21.804,62|2021|Octubre|
+|Barbosa  |Industrial      |Industrial      |Alcantarillado|$6.039,39 |$0,00                  |$0,00                  |$2.336,07        |$12.719,36|$10.902,31   |$19.987,57|$21.804,62|2021|Octubre|
+|Barbosa  |Oficial y Exenta|Oficial y Exenta|Acueducto     |$7.020,83 |$0,00                  |$0,00                  |$2.671,43        |$12.719,36|$10.902,31   |$19.987,57|$21.804,62|2021|Octubre|
++---------+----------------+----------------+--------------+----------+-----------------------+-----------------------+-----------------+----------+-------------+----------+----------+----+-------+
+only showing top 5 rows
+
+
+==============================================================================
+ 2. DIAGNÓSTICO DE CALIDAD
+==============================================================================
+Valores nulos por columna:
++---------+------+-------+--------+----------+-----------------------+-----------------------+-----------------+----------+-------------+----------+-----+---+---+
+|Municipio|Sector|Estrato|Servicio|Cargo Fijo|Cargo por Consumo Menor|Cargo por Consumo Mayor|Cargo por Consumo|Suspensión|Reinstalación|Reconexión|Corte|Año|Mes|
++---------+------+-------+--------+----------+-----------------------+-----------------------+-----------------+----------+-------------+----------+-----+---+---+
+|0        |0     |0      |0       |0         |0                      |0                      |2                |0         |0            |0         |0    |0  |0  |
++---------+------+-------+--------+----------+-----------------------+-----------------------+-----------------+----------+-------------+----------+-----+---+---+
+
+Filas duplicadas exactas: 370
+Municipios (se observa 'Estrella' y 'La Estrella' como dos nombres):
++---------------------+-----+
+|Municipio            |count|
++---------------------+-----+
+|Sabaneta             |2142 |
+|Girardota            |2141 |
+|Itaguí               |2126 |
+|Bello                |2124 |
+|Medellín             |2123 |
+|Caldas               |2123 |
+|Envigado             |2120 |
+|Barbosa              |2117 |
+|Copacabana           |2115 |
+|La Estrella          |2096 |
+|Rionegro             |1422 |
+|El Retiro            |1278 |
+|Estrella             |36   |
+|Apartadó             |18   |
+|Carepa               |18   |
+|Belén de Bajirá      |18   |
+|San Jerónimo         |18   |
+|Mutatá               |18   |
+|Olaya                |18   |
+|Malambo              |18   |
+|Turbo                |18   |
+|Chigorodó            |18   |
+|Santa Fé de Antioquia|18   |
+|Sopetrán             |18   |
+|El Reposo            |18   |
++---------------------+-----+
+
+Valores de Estrato (mezcla números y categorías no residenciales):
++----------------+----------------+-----+
+|Sector          |Estrato         |count|
++----------------+----------------+-----+
+|Comercial       |Comercial       |2618 |
+|Comercial       |No aplica       |62   |
+|Industrial      |Industrial      |2624 |
+|Industrial      |No aplica       |62   |
+|Oficial y Exenta|No aplica       |61   |
+|Oficial y Exenta|Oficial y Exenta|2622 |
+|Residencial     |1               |2686 |
+|Residencial     |2               |2689 |
+|Residencial     |3               |2688 |
+|Residencial     |4               |2690 |
+|Residencial     |5               |2689 |
+|Residencial     |6               |2688 |
++----------------+----------------+-----+
+
+
+==============================================================================
+ 3. LIMPIEZA Y TRANSFORMACIÓN
+==============================================================================
+- Duplicados eliminados: 370
+- 'Estrella' unificado como 'La Estrella'
+- Columnas monetarias convertidas de texto ('$10.531,25') a double
+- Mes convertido a número y creada la columna 'fecha'
+- Registros con cargo por consumo nulo eliminados: 2
+- Atípicos en cargo_fijo: 1
++---------+---------+--------------+----------+----------+------------------+
+|municipio|sector   |servicio      |fecha     |cargo_fijo|cargo_fijo_mediana|
++---------+---------+--------------+----------+----------+------------------+
+|Envigado |Comercial|Alcantarillado|2017-05-01|689770.0  |7127.62           |
++---------+---------+--------------+----------+----------+------------------+
+
+- Atípicos en valor_m3: 2
++---------+----------------+--------------+----------+--------+----------------+
+|municipio|sector          |servicio      |fecha     |valor_m3|valor_m3_mediana|
++---------+----------------+--------------+----------+--------+----------------+
+|Barbosa  |Oficial y Exenta|Acueducto     |2018-05-01|140427.0|1451.08         |
+|Medellín |Oficial y Exenta|Alcantarillado|2017-05-01|175523.0|1760.66         |
++---------+----------------+--------------+----------+--------+----------------+
+
+- Registros con tarifa 0 (servicio no prestado): 18
++---------------+--------------+-----+
+|municipio      |servicio      |count|
++---------------+--------------+-----+
+|El Reposo      |Alcantarillado|9    |
+|Belén de Bajirá|Alcantarillado|9    |
++---------------+--------------+-----+
+
+- Nuevas columnas: tipo_usuario, estrato_num, valor_m3, factura_estimada (cargo fijo + 13 m3)
+Registros después de la limpieza: 23,789
++---------+-----------+-------+--------------+----------+----------+--------+----------------+
+|municipio|sector     |estrato|servicio      |fecha     |cargo_fijo|valor_m3|factura_estimada|
++---------+-----------+-------+--------------+----------+----------+--------+----------------+
+|Barbosa  |Residencial|4      |Alcantarillado|2026-07-01|5818.38   |3220.49 |47684.75        |
+|Barbosa  |Residencial|3      |Alcantarillado|2026-05-01|5236.54   |2898.44 |42916.26        |
+|Barbosa  |Residencial|6      |Alcantarillado|2026-06-01|9309.41   |5152.78 |76295.55        |
+|Barbosa  |Residencial|5      |Alcantarillado|2026-08-01|8727.57   |4830.74 |71527.19        |
+|Barbosa  |Residencial|1      |Alcantarillado|2026-02-01|3941.61   |2183.11 |32322.04        |
++---------+-----------+-------+--------------+----------+----------+--------+----------------+
+only showing top 5 rows
+
+
+==============================================================================
+ 4. ANÁLISIS EXPLORATORIO (EDA)
+==============================================================================
+4.1 Estadísticas descriptivas de los cargos (COP):
++-------+-----------------+------------------+-----------------+------------------+------------------+
+|summary|cargo_fijo       |valor_m3          |factura_estimada |reconexion        |corte             |
++-------+-----------------+------------------+-----------------+------------------+------------------+
+|count  |23789            |23789             |23789            |23789             |23789             |
+|mean   |7109.574093908952|3417.7107331119437|51539.81362436421|23589.52370213123 |25733.907572827786|
+|stddev |3542.842658670945|1782.7534925004518|26070.50144076355|6429.7580774045055|7014.407192083865 |
+|min    |729.91           |468.49            |6820.28          |16229.0           |17703.74          |
+|max    |19647.5          |9699.99           |145747.37        |38519.91          |42021.72          |
++-------+-----------------+------------------+-----------------+------------------+------------------+
+
+4.2 Evolución anual de la factura estimada residencial (promedio, COP):
++----+---------+--------------+-------------+-------------+
+|anio|acueducto|alcantarillado|factura_total|variacion_pct|
++----+---------+--------------+-------------+-------------+
+|2017|32105.0  |25575.0       |57679.0      |NULL         |
+|2018|35826.0  |26506.0       |62305.0      |8.02         |
+|2019|39584.0  |30931.0       |70515.0      |13.18        |
+|2020|41531.0  |32560.0       |74090.0      |5.07         |
+|2021|46559.0  |35262.0       |81821.0      |10.43        |
+|2022|57294.0  |41841.0       |99136.0      |21.16        |
+|2023|65287.0  |48239.0       |113527.0     |14.52        |
+|2024|70161.0  |51998.0       |122158.0     |7.6          |
+|2025|71835.0  |53238.0       |125444.0     |2.69         |
+|2026|76002.0  |57836.0       |133838.0     |6.69         |
++----+---------+--------------+-------------+-------------+
+
+4.3 Factura estimada por estrato - Medellín, último mes disponible:
+    Último mes disponible: 2026-08-01
+    (estrato 4 = tarifa de referencia; negativo = subsidio, positivo = contribución)
++-----------+---------+--------------+------------------+----------------+
+|estrato_num|Acueducto|Alcantarillado|factura_total     |vs_estrato_4_pct|
++-----------+---------+--------------+------------------+----------------+
+|1          |29959.18 |22858.02      |52817.2           |-60.0           |
+|2          |44938.64 |34286.96      |79225.6           |-40.0           |
+|3          |65535.54 |50001.81      |115537.35         |-12.5           |
+|4          |74897.82 |57144.98      |132042.80000000002|0.0             |
+|5          |112346.8 |85717.54      |198064.34         |50.0            |
+|6          |119836.46|91431.94      |211268.40000000002|60.0            |
++-----------+---------+--------------+------------------+----------------+
+
+4.4 Ranking de municipios - estrato 3, último mes disponible:
++-----------+-------------+
+|municipio  |factura_total|
++-----------+-------------+
+|Copacabana |132043.0     |
+|La Estrella|132043.0     |
+|Caldas     |129244.0     |
+|Sabaneta   |126367.0     |
+|Bello      |126328.0     |
+|Itaguí     |125441.0     |
+|Envigado   |125441.0     |
+|Rionegro   |120808.0     |
+|Medellín   |115537.0     |
+|El Retiro  |112236.0     |
+|Girardota  |112236.0     |
+|Barbosa    |103520.0     |
++-----------+-------------+
+
+4.5 Factura promedio por sector no residencial vs residencial (último año completo):
+    Año: 2025
++----------------+----------------+
+|sector          |factura_promedio|
++----------------+----------------+
+|Comercial       |184996.0        |
+|Industrial      |169060.0        |
+|Residencial     |125444.0        |
+|Oficial y Exenta|121539.0        |
++----------------+----------------+
+
+4.6 Crecimiento 2017 -> último año por servicio (cargo fijo y valor m3, residencial):
++--------------+-------+-------+---------------+
+|servicio      |m3_2017|m3_2026|crecimiento_pct|
++--------------+-------+-------+---------------+
+|Alcantarillado|1601.04|3991.69|149.3          |
+|Acueducto     |1782.85|5049.94|183.3          |
++--------------+-------+-------+---------------+
+
+4.7 Cargos por gestión (promedio anual, COP):
++----+----------+-------------+----------+-------+
+|anio|suspension|reinstalacion|reconexion|corte  |
++----+----------+-------------+----------+-------+
+|2017|10327.0   |8852.0       |16229.0   |17704.0|
+|2018|10936.0   |9374.0       |17187.0   |18748.0|
+|2019|11594.0   |9937.0       |18219.0   |19875.0|
+|2020|12179.0   |10439.0      |19139.0   |20879.0|
+|2021|12719.0   |10902.0      |19988.0   |21805.0|
+|2022|14000.0   |12000.0      |22000.0   |24000.0|
+|2023|16240.0   |13920.0      |25520.0   |27840.0|
+|2024|18200.0   |15600.0      |28600.0   |31200.0|
+|2025|19929.0   |17082.0      |31317.0   |34164.0|
+|2026|24513.0   |21011.0      |38520.0   |42022.0|
++----+----------+-------------+----------+-------+
+
+4.8 Ejemplo con RDDs (map + reduceByKey + acciones):
+    count(): 24 municipios
+    take(5) registros por municipio: [('Sabaneta', 2108), ('La Estrella', 2102), ('Girardota', 2099), ('Itaguí', 2094), ('Bello', 2094)]
+    take(5) cargo fijo máximo: [('Copacabana', 19647.5), ('El Retiro', 19511.87), ('Bello', 18324.09), ('Envigado', 17815.09), ('Sabaneta', 16513.79)]
+    reduce(): 23,789 registros en total
+
+==============================================================================
+ 5. GUARDADO Y VISUALIZACIÓN
+==============================================================================
+- ../output/evolucion_anual.csv
+- ../output/factura_por_estrato.csv
+- ../output/ranking_municipios.csv
+- ../output/factura_por_sector.csv
+- ../output/crecimiento_servicio.csv
+- ../output/cargos_gestion.csv
+- ../output/tarifas_limpias.parquet
+- Gráficos guardados en ../output/graficos
