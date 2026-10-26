@@ -10,13 +10,13 @@ calcula en tiempo real, por ventanas de 1 minuto:
 Ejecutar (ajustar la versión 3.5.3 a la salida de `spark-submit --version`):
   spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3 spark_streaming_consumer.py
 """
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, Row
 from pyspark.sql import functions as F
 from pyspark.sql.types import (StructType, StructField, IntegerType,
                                DoubleType, LongType, StringType)
 
 TOPIC = "lecturas_agua"
-CONSUMO_BASICO_M3 = 13      # consumo de subsistencia (Res. CRA 750/2016)
+CONSUMO_BASICO_M3 = 13       # consumo de subsistencia (Res. CRA 750/2016)
 UMBRAL_ALERTA_M3 = 40
 
 # Tarifas residenciales Medellín (acueducto + alcantarillado), agosto 2026, COP.
@@ -42,9 +42,26 @@ ESQUEMA = StructType([
 
 def preparar(spark, lecturas_json):
     """Convierte el JSON de Kafka en columnas y calcula el valor de cada lectura
-    (unión streaming-estática con la tabla de tarifas)."""
-    tarifas = spark.createDataFrame(
-        TARIFAS, ["estrato", "cargo_fijo", "valor_m3_basico", "valor_m3_adicional"])
+    (unión streaming-estática con la tabla de tarifas utilizando esquema explícito)."""
+    
+    # Esquema y filas explícitas para evitar errores de serialización (Stack overflow)
+    schema_tarifas = StructType([
+        StructField("estrato", IntegerType(), False),
+        StructField("cargo_fijo", DoubleType(), False),
+        StructField("valor_m3_basico", DoubleType(), False),
+        StructField("valor_m3_adicional", DoubleType(), False)
+    ])
+    
+    rows_tarifas = [
+        Row(
+            estrato=int(t[0]), 
+            cargo_fijo=float(t[1]), 
+            valor_m3_basico=float(t[2]), 
+            valor_m3_adicional=float(t[3])
+        ) for t in TARIFAS
+    ]
+    
+    tarifas = spark.createDataFrame(rows_tarifas, schema_tarifas)
 
     lecturas = (lecturas_json
                 .select(F.from_json(F.col("value").cast("string"), ESQUEMA).alias("d"))
